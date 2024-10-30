@@ -162,8 +162,7 @@ class MmuToolHead(toolhead.ToolHead, object):
         printer_extruder = self.printer_toolhead.get_extruder()
         if self.homing_extruder:
             # Restore original extruder options in case user macros reference them
-            for key in self.old_ext_options:
-                value = self.old_ext_options[key]
+            for key,value in self.old_ext_options.items():
                 self.config.fileconfig.set('extruder', key, value)
 
             # Now we can switch in homing MmuExtruderStepper

@@ -474,11 +474,11 @@ class MmuServer:
                 sid: (
                     self._unset_spool_gate(sid, silent=silent),
                     None
-                ) if updates[sid] < 0 else (
-                    self._set_spool_gate(sid, self.printer_hostname, updates[sid], silent=silent),
-                    updates[sid]
+                ) if update < 0 else (
+                    self._set_spool_gate(sid, self.printer_hostname, update, silent=silent),
+                    update
                 )
-                for sid in updates.keys()
+                for sid, update in updates.items()
             }
             results = await asyncio.gather(*[task for task,_ in tasks.values()])
 

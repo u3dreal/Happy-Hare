@@ -1970,7 +1970,7 @@ class Mmu:
             table_headers.insert(0, 'swaps')
 
             # Filter out the top (group) headers ( If none of the unload columns are present, unloading can be removed)
-            table_extra_headers = [key for key in table_extra_headers_map if len(self._list_intersection(table_extra_headers_map[key], table_include_columns)) > 0]
+            table_extra_headers = [key for key, headers in table_extra_headers_map.items() if len(self._list_intersection(headers, table_include_columns)) > 0]
             # Dictionary keys have no predefined order, so re-order them (Lucky the columns are alphabetical)
             table_extra_headers.sort(reverse=True)
             # Include the number of swaps in the top-left corner of the table
@@ -2114,9 +2114,10 @@ class Mmu:
         self._write_variables()
 
     def _persist_swap_statistics(self):
-        for key in self.statistics:
-            if isinstance(self.statistics[key], float):
-                self.statistics[key] = round(self.statistics[key], 2)
+        for key, statistic in self.statistics.items():
+        # for key in self.statistics:
+            if isinstance(statistic, float):
+                self.statistics[key] = round(statistic, 2)
         self._save_variable(self.VARS_MMU_SWAP_STATISTICS, self.statistics, write=True)
 
     def _persist_counters(self):
