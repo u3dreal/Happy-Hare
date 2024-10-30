@@ -887,7 +887,7 @@ class Mmu:
                     if self.homing_extruder and name == self.ENDSTOP_TOOLHEAD:
                         mcu_endstop.add_stepper(self.mmu_extruder_stepper.stepper)
                 else:
-                    logging.warn("Improper setup: Filament sensor %s is not defined in [mmu_sensors]" % name)
+                    logging.warning("Improper setup: Filament sensor %s is not defined in [mmu_sensors]", name)
 
         # Get servo and (optional) encoder setup -----
         self.servo = self.printer.lookup_object('mmu_servo mmu_servo', None)
@@ -896,7 +896,7 @@ class Mmu:
         self.encoder_sensor = self.printer.lookup_object('mmu_encoder mmu_encoder', None)
         if not self.encoder_sensor:
             # MMU logging not set up so use main klippy logger
-            logging.warn("No [mmu_encoder] definition found in mmu_hardware.cfg. Assuming encoder is not available")
+            logging.warning("No [mmu_encoder] definition found in mmu_hardware.cfg. Assuming encoder is not available")
 
     def _setup_logging(self):
         # Setup background file based logging before logging any messages
@@ -907,7 +907,7 @@ class Mmu:
                 mmu_log = '/tmp/mmu.log'
             else:
                 mmu_log = dirname + '/mmu.log'
-            logging.info("MMU Log: %s" % mmu_log)
+            logging.info("MMU Log: %s", mmu_log)
             self.mmu_logger = MmuLogger(mmu_log)
             self.mmu_logger.log("\n\n\nMMU Startup -----------------------------------------------\n")
 

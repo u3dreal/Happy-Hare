@@ -75,7 +75,7 @@ class MmuRunoutHelper:
         try:
             self.gcode.run_script(command)
         except Exception:
-            logging.exception("Error running mmu sensor handler: `%s`" % command)
+            logging.exception("Error running mmu sensor handler: `%s`", command)
         self.min_event_systime = self.reactor.monotonic() + self.event_delay
 
     def note_filament_present(self, is_filament_present):

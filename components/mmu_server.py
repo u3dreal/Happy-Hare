@@ -85,11 +85,11 @@ class MmuServer:
     async def _get_spoolman_version(self) -> tuple[int, int, int] | None:
         response = await self.http_client.get(url=f'{self.spoolman.spoolman_url}/v1/info')
         if response.status_code == 404:
-            logging.info(f"'{self.spoolman.spoolman_url}/v1/info' not found")
+            logging.info("'%s/v1/info' not found", self.spoolman.spoolman_url)
             return False
         elif response.has_error():
             err_msg = self.spoolman._get_response_error(response)
-            logging.error(f"Attempt to get info from spoolman failed: {err_msg}")
+            logging.error("Attempt to get info from spoolman failed: %s", err_msg)
             return False
         else:
             logging.info("info field in spoolman retrieved")
@@ -113,9 +113,9 @@ class MmuServer:
             for _ in range(retry):
                 self.spoolman_version = await self._get_spoolman_version()
                 if self.spoolman_version:
-                    logging.info(f"Contacted Spoolman")
+                    logging.info("Contacted Spoolman")
                     break
-                logging.warning(f"Spoolman not available. {'Retrying in 2 seconds...' if retry > 1 else ''}")
+                logging.warning("Spoolman not available. %s", 'Retrying in 2 seconds...' if retry > 1 else '')
                 await asyncio.sleep(2)
 
             extras = False
@@ -134,9 +134,9 @@ class MmuServer:
                 self.spoolman_has_extras = extras
 
             elif self.spoolman_version:
-                logging.error(f"Could not initialize Spoolman db for Happy Hare. Spoolman db version too old (found {self.spoolman_version} < {MIN_SM_VER})")
+                logging.error("Could not initialize Spoolman db for Happy Hare. Spoolman db version too old (found %s < %s)", self.spoolman_version, MIN_SM_VER)
             else:
-                logging.error(f"Could not connect to Spoolman db. Perhaps it is not initialized yet? Will try again on next request")
+                logging.error("Could not connect to Spoolman db. Perhaps it is not initialized yet? Will try again on next request")
                 return False
         return True
 
@@ -145,9 +145,9 @@ class MmuServer:
             db_awake = await self._init_spoolman()
             if not silent:
                 if not db_awake:
-                    await self._log_n_send(f"Couldn't connect to Spoolman. Maybe not configured/running yet (check moonraker.log).\nUse MMU_SPOOLMAN REFRESH=1 to force retry")
+                    await self._log_n_send("Couldn't connect to Spoolman. Maybe not configured/running yet (check moonraker.log).\nUse MMU_SPOOLMAN REFRESH=1 to force retry")
                 elif not self.spoolman_has_extras:
-                    await self._log_n_send(f"Incompatible Spoolman version for this feature. Check moonraker.log")
+                    await self._log_n_send("Incompatible Spoolman version for this feature. Check moonraker.log")
         return self.spoolman_has_extras
 
     # !TODO: implement mainsail/fluidd gui prompts?
@@ -183,8 +183,8 @@ class MmuServer:
             self.mmu_enabled = self.mmu_backend_config.get('mmu', {}).get('enabled', False)
         else:
             self.mmu_enabled = False
-        logging.info(f"MMU backend present: {self.mmu_backend_present}")
-        logging.info(f"MMU backend enabled: {self.mmu_enabled}")
+        logging.info("MMU backend present: %s", self.mmu_backend_present)
+        logging.info("MMU backend enabled: %s", self.mmu_enabled)
         return True
 
     def _mmu_backend_enabled(self):
@@ -205,7 +205,7 @@ class MmuServer:
                 self.nb_gates = self.mmu_backend_config.get('mmu', {}).get('num_gates', 0)
             else:
                 self.nb_gates = 1 # for standalone usage (no mmu backend considering standard printer setup)
-            logging.info(f"MMU num_gates: {self.nb_gates}")
+            logging.info("MMU num_gates: %s", self.nb_gates)
         return True
 
     async def _get_extra_fields(self, entity_type) -> bool:
@@ -214,14 +214,14 @@ class MmuServer:
         '''
         response = await self.http_client.get(url=f'{self.spoolman.spoolman_url}/v1/field/{entity_type}')
         if response.status_code == 404:
-            logging.info(f"'{self.spoolman.spoolman_url}/v1/field/{entity_type}' not found")
+            logging.info("'%s/v1/field/%s' not found", self.spoolman.spoolman_url, entity_type)
             return False
         elif response.has_error():
             err_msg = self.spoolman._get_response_error(response)
-            logging.error(f"Attempt to get extra fields failed: {err_msg}")
+            logging.error("Attempt to get extra fields failed: %s", err_msg)
             return False
         else:
-            logging.info(f"Extra fields for {entity_type} found")
+            logging.info("Extra fields for %s found", entity_type)
             return [r['key'] for r in response.json()]
 
     async def _add_extra_field(self, entity_type, field_key, field_name, field_type, default_value) -> bool:
@@ -234,13 +234,13 @@ class MmuServer:
             body={"name" : field_name, "field_type" : field_type, "default_value" : json.dumps(default_value)}
         )
         if response.status_code == 404:
-            logging.info(f"'{self.spoolman.spoolman_url}/v1/field/spool/{field_key}' not found")
+            logging.info("'%s/v1/field/spool/%s' not found", self.spoolman.spoolman_url, field_key)
             return False
         elif response.has_error():
             err_msg = self.spoolman._get_response_error(response)
-            logging.error(f"Attempt add field {field_name} failed: {err_msg}")
+            logging.error("Attempt add field %s failed: %s", field_key, err_msg)
             return False
-        logging.info(f"Field {field_name} added to Spoolman db for entity type {entity_type}")
+        logging.info("Field %s added to Spoolman db for entity type %s", field_name, entity_type)
         logging.info("  -fields: %s", response.json())
         return True
 
@@ -253,11 +253,11 @@ class MmuServer:
             url=f'{self.spoolman.spoolman_url}/v1/spool/{spool_id}',
             body=None)
         if response.status_code == 404:
-            logging.error(f"'{self.spoolman.spoolman_url}/v1/spool/{spool_id}' not found")
+            logging.error("'%s/v1/spool/%s' not found", self.spoolman.spoolman_url, spool_id)
             return None
         elif response.has_error():
             err_msg = self.spoolman._get_response_error(response)
-            logging.info(f"Attempt to fetch spool info failed: {err_msg}")
+            logging.info("Attempt to fetch spool info failed: %s", err_msg)
             return None
         spool_info = response.json()
         return spool_info
@@ -350,7 +350,7 @@ class MmuServer:
 
         # Use the PATCH method on the spoolman api
         if not silent:
-            logging.info(f"Setting spool {spool_id} for printer {printer} @ gate {gate}")
+            logging.info("Setting spool %s for printer %s @ gate %s", spool_id, printer, gate)
         data = {'extra': {MMU_NAME_FIELD: json.dumps(f"{printer}"), MMU_GATE_FIELD: json.dumps(gate)}}
         if self.update_location:
             data['location'] = f"{printer} @ MMU Gate:{gate}"
@@ -360,12 +360,12 @@ class MmuServer:
             body=json.dumps(data)
         )
         if response.status_code == 404:
-            logging.error(f"'{self.spoolman.spoolman_url}/v1/spool/{spool_id}' not found")
+            logging.error("'%s/v1/spool/%s' not found", self.spoolman.spoolman_url, spool_id)
             await self._log_n_send(f"SpoolId {spool_id} not found", error=True, silent=False)
             return False
         elif response.has_error():
             err_msg = self.spoolman._get_response_error(response)
-            logging.error(f"Attempt to set spool failed: {err_msg}")
+            logging.error("Attempt to set spool failed: %s", err_msg)
             await self._log_n_send(f"Failed to set spool {spool_id} for printer {printer}. Look at moonraker.log for more details.", error=True, silent=False)
             return False
         return True
@@ -375,7 +375,7 @@ class MmuServer:
 
         # Use the PATCH method on the spoolman api
         if not silent:
-            logging.info(f"Unsetting gate map on spool id {spool_id}")
+            logging.info("Unsetting gate map on spool id %s", spool_id)
         data = {'extra': {MMU_NAME_FIELD: json.dumps(""), MMU_GATE_FIELD: json.dumps(-1)}}
         if self.update_location:
             data['location'] = ""
@@ -385,12 +385,12 @@ class MmuServer:
             body=json.dumps(data)
         )
         if response.status_code == 404:
-            logging.error(f"'{self.spoolman.spoolman_url}/v1/spool/{spool_id}' not found")
+            logging.error("'%s/v1/spool/%s' not found", self.spoolman.spoolman_url, spool_id)
             await self._log_n_send(f"SpoolId {spool_id} not found", error=True, silent=False)
             return False
         elif response.has_error():
             err_msg = self.spoolman._get_response_error(response)
-            logging.error(f"Attempt to unset spool failed: {err_msg}")
+            logging.error("Attempt to unset spool failed: %s", err_msg)
             await self._log_n_send(f"Failed to unset spool {spool_id}. Look at moonraker.log for more details", error=True, silent=False)
             return False
         return True
@@ -408,7 +408,7 @@ class MmuServer:
                     {'spool_id': -1} if spool_id < 0 else
                     self.spool_location.get(spool_id)[2].copy()
                     if self.spool_location.get(spool_id)
-                    else logging.error(f"Spool id {spool_id} requested but not found in spoolman")
+                    else logging.error("Spool id %s requested but not found in spoolman", spool_id)
                 )
                 for gate, spool_id in gate_ids
             }
@@ -521,7 +521,7 @@ class MmuServer:
 
             printer_name = printer or self.printer_hostname
             if not silent:
-                logging.info(f"Clearing gate map for printer: {printer_name}")
+                logging.info("Clearing gate map for printer: %s", printer_name)
 
             # Create minimal set of async tasks to update Spoolman db and run them in parallel
             old_sids = self._find_all_spool_ids(printer_name, None)
@@ -574,7 +574,7 @@ class MmuServer:
                 gate = 0
 
             if not silent:
-                logging.info(f"Attempting to set gate {gate} for printer {self.printer_hostname}")
+                logging.info("Attempting to set gate %s for printer %s", gate, self.printer_hostname)
 
             # Create minimal set of async tasks to update Spoolman db and run them in parallel
             old_sids = self._find_all_spool_ids(self.printer_hostname, gate)
@@ -731,10 +731,10 @@ class MmuServer:
 
     # Switch out the metadata processor with this module which handles placeholders
     def setup_placeholder_processor(self, config):
-        args = " -m" if config.getboolean("enable_file_preprocessor", True) else ""
-        args += " -n" if config.getboolean("enable_toolchange_next_pos", True) else ""
+        arguments = " -m" if config.getboolean("enable_file_preprocessor", True) else ""
+        arguments += " -n" if config.getboolean("enable_toolchange_next_pos", True) else ""
         from .file_manager import file_manager
-        file_manager.METADATA_SCRIPT = os.path.abspath(__file__) + args
+        file_manager.METADATA_SCRIPT = os.path.abspath(__file__) + arguments
 
 def load_component(config):
     return MmuServer(config)
