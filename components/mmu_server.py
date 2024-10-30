@@ -93,7 +93,7 @@ class MmuServer:
             return False
         else:
             logging.info("info field in spoolman retrieved")
-            return tuple([int(n) for n in response.json()['version'].split('.')])
+            return tuple(int(n) for n in response.json()['version'].split('.'))
 
     async def component_init(self) -> None:
         if self.spoolman is None:
