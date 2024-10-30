@@ -1,7 +1,7 @@
 # Happy Hare MMU Software
 # Temporary stub to replace previous class to remind user to re-run ./install.sh
 #
-import chelper, logging
+import logging, chelper
 
 class MmuConfigSetup():
 

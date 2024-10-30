@@ -18,8 +18,8 @@
 #
 import logging, importlib, math, os, time
 import stepper, chelper, toolhead
-from extras.homing import Homing, HomingMove
 from kinematics.extruder import PrinterExtruder, DummyExtruder, ExtruderStepper
+from extras.homing import Homing, HomingMove
 
 
 # Main code to track events (and their timing) on the MMU Machine implemented as additional "toolhead"

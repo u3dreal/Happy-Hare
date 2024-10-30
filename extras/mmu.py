@@ -14,11 +14,11 @@
 #
 import sys # To detect python2 or python3
 import random, logging, logging.handlers, threading, queue, atexit, time, contextlib, math, os.path, re, unicodedata
+import ast, chelper
 from extras.mmu_toolhead import MmuToolHead, MmuHoming
 from extras.mmu_sensors import MmuRunoutHelper
 from extras.homing import Homing, HomingMove
 from extras.mmu_leds import MmuLeds
-import chelper, ast
 
 
 # Default to no unicode on Python2. Not worth the hassle!
