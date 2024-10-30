@@ -6344,9 +6344,9 @@ class Mmu:
                 if self.tool_selected >= 0 and self.ttg_map[self.tool_selected] == gate:
                     pass
                 else:
-                    for tool in range(len(self.ttg_map)):
-                        if self.ttg_map[tool] == gate:
-                            self._select_tool(tool)
+                    for t in range(len(self.ttg_map)):
+                        if self.ttg_map[t] == gate:
+                            self._select_tool(t)
                             break
                     else:
                         self._set_tool_selected(self.TOOL_GATE_UNKNOWN)

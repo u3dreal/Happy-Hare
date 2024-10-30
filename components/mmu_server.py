@@ -165,8 +165,8 @@ class MmuServer:
                 msg = msg.replace("\n", "\\n") # Get through klipper filtering
                 await self.klippy_apis.run_gcode(f"MMU_LOG MSG='{msg}' {error_flag}")
             else:
-                for msg in msg.split("\n"):
-                    await self.klippy_apis.run_gcode(f"M118 {msg}")
+                for message in msg.split("\n"):
+                    await self.klippy_apis.run_gcode(f"M118 {message}")
                 if error :
                     await self.klippy_apis.pause_print()
 
