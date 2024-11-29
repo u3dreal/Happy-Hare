@@ -1286,7 +1286,7 @@ class RotarySelector:
         self.mmu.movequeues_wait()
         try:
             endstop = self.selector_rail.get_endstops() # Have an endstop (most likely stallguard)?
-            if endstop:
+            if endstop.__class__.__name__ != "MockEndstop":
                 homing_state = mmu_machine.MmuHoming(self.mmu.printer, self.mmu_toolhead)
                 homing_state.set_axes([0])
                 self.mmu.mmu_toolhead.get_kinematics().home(homing_state)
