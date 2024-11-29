@@ -1291,8 +1291,6 @@ class RotarySelector:
                 if endstop.__class__.__name__ == "MockEndstop":
                     no_endstop = True
 
-            self.mmu.log_always(no_endstop)
-
             if not no_endstop:
                 homing_state = mmu_machine.MmuHoming(self.mmu.printer, self.mmu_toolhead)
                 homing_state.set_axes([0])
