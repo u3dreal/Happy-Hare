@@ -185,11 +185,6 @@ class MmuMachine:
         # TODO add more h/w validation here based on num_gates & vendor, virtual selector, etc
         # TODO would allow for easier to understand error messages for conflicting or missing
         # TODO hardware definitions.
-        # TODO Can also automatically remove config sections that aren't required. E.g. if VirtualSelector
-        # TODO then remove like:
-        # TODO if config.has_section(section_to_remove):
-        # TODO     config.remove_section("mmu_servo selector_servo")
-        # TODO     config.remove_section("stepper_mmu_selector") & "tmc2209 stepper_mmu_selector" where TMC is dynamic
 
 
 # Main code to track events (and their timing) on the MMU Machine implemented as additional "toolhead"
@@ -197,9 +192,9 @@ class MmuMachine:
 class MmuToolHead(toolhead.ToolHead, object):
 
     # Gear/Extruder synchronization modes (None = unsynced)
-    EXTRUDER_SYNCED_TO_GEAR = 1
-    EXTRUDER_ONLY_ON_GEAR   = 2
-    GEAR_SYNCED_TO_EXTRUDER = 3
+    EXTRUDER_SYNCED_TO_GEAR = 1 # Aka 'gear+extruder'
+    EXTRUDER_ONLY_ON_GEAR   = 2 # Aka 'extruder' (only)
+    GEAR_SYNCED_TO_EXTRUDER = 3 # Aka 'extruder+gear'
 
     def __init__(self, config, mmu):
         self.mmu = mmu
@@ -414,7 +409,7 @@ class MmuToolHead(toolhead.ToolHead, object):
         prev_sync_mode = self.sync_mode
         self.unsync()
         if new_sync_mode is None: return prev_sync_mode # Lazy way to unsync()
-        self.mmu.log_stepper("sync(mode=%s)" % new_sync_mode)
+        self.mmu.log_stepper("sync(mode=%s)" % ("gear+extruder" if new_sync_mode == self.EXTRUDER_SYNCED_TO_GEAR  else "extruder" if new_sync_mode == self.EXTRUDER_ONLY_ON_GEAR else "extruder+gear"))
         self.printer_toolhead.flush_step_generation()
         self.mmu_toolhead.flush_step_generation()
 
@@ -556,14 +551,14 @@ class MmuToolHead(toolhead.ToolHead, object):
                 if self.is_extruder_synced_to_gear():
                     msg += "SYNCHRONIZED: Extruder '%s' synced to gear rail\n" % extruder_name
 
-        e_stepper = self.printer_toolhead.get_extruder().extruder_stepper.stepper
+        e_stepper = self.printer_toolhead.get_extruder().extruder_stepper
         msg +=  "\nPRINTER TOOLHEAD: %s\n" % self.printer_toolhead.get_position()
-        header = "Extruder Stepper: %s %s %s" % (extruder_name, "(MmuExtruderStepper)" if isinstance(self.printer_toolhead.get_extruder().extruder_stepper, MmuExtruderStepper) else "", '-' * 100)
+        header = "Extruder Stepper: %s %s %s" % (extruder_name, "(MmuExtruderStepper)" if isinstance(e_stepper, MmuExtruderStepper) else "(Non Homing Default)", '-' * 100)
         msg += header[:100] + "\n"
-        msg += "- Commanded Pos: %.2f, " % e_stepper.get_commanded_position()
-        msg += "MCU Pos: %.2f, " % e_stepper.get_mcu_position()
-        rd = e_stepper.get_rotation_distance()
-        msg += "Rotation Dist: %.6f (in %d steps, step_dist=%.6f)\n" % (rd[0], rd[1], e_stepper.get_step_dist())
+        msg += "- Commanded Pos: %.2f, " % e_stepper.stepper.get_commanded_position()
+        msg += "MCU Pos: %.2f, " % e_stepper.stepper.get_mcu_position()
+        rd = e_stepper.stepper.get_rotation_distance()
+        msg += "Rotation Dist: %.6f (in %d steps, step_dist=%.6f)\n" % (rd[0], rd[1], e_stepper.stepper.get_step_dist())
         return msg
 
 
@@ -834,6 +829,16 @@ class MmuExtruderStepper(ExtruderStepper, object):
         if endstop_pin:
             mcu_endstop = gear_rail.add_extra_endstop(endstop_pin, 'mmu_ext_touch', bind_rail_steppers=True)
             mcu_endstop.add_stepper(self.stepper)
+
+    # Override to add QUIET option to control console logging
+    def cmd_SET_PRESSURE_ADVANCE(self, gcmd):
+        pressure_advance = gcmd.get_float('ADVANCE', self.pressure_advance, minval=0.)
+        smooth_time = gcmd.get_float('SMOOTH_TIME', self.pressure_advance_smooth_time, minval=0., maxval=.200)
+        self._set_pressure_advance(pressure_advance, smooth_time)
+        msg = ("pressure_advance: %.6f\n" "pressure_advance_smooth_time: %.6f" % (pressure_advance, smooth_time))
+        self.printer.set_rollover_info(self.name, "%s: %s" % (self.name, msg))
+        if not gcmd.get_int('QUIET', 0, minval=0, maxval=1):
+            gcmd.respond_info(msg, log=False)
 
 class DummyRail:
     def __init__(self):

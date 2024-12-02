@@ -10,7 +10,7 @@
 #               2024  Unsweeticetea <iamzevle@gmail.com>
 #               2024  Dmitry Kychanov <k1-801@mail.ru>
 #
-VERSION=3.00 # Important: Keep synced with mmy.py
+VERSION=3.01 # Important: Keep synced with mmy.py
 
 F_VERSION=$(echo "$VERSION" | sed 's/\([0-9]\+\)\.\([0-9]\)\([0-9]\)/\1.\2.\3/')
 SCRIPT="$(readlink -f "$0")"
@@ -271,7 +271,7 @@ verify_home_dirs() {
 # Silently cleanup any potentially old klippy modules
 cleanup_old_klippy_modules() {
     if [ -d "${KLIPPER_HOME}/klippy/extras" ]; then
-        for file in mmu.py mmu_toolhead.py; do
+        for file in mmu.py mmu_toolhead.py mmu_config_setup.py; do
             rm -f "${KLIPPER_HOME}/klippy/extras/${file}"
         done
     fi
@@ -779,10 +779,10 @@ copy_config_files() {
                 sed "/^# ENCODER/,+24 d" ${dest} > ${dest}.tmp && mv ${dest}.tmp ${dest}
             fi
 
-            # Handle Selector options - Delete if not required (sections are 8 and 36 lines respectively)
+            # Handle Selector options - Delete if not required (sections are 8 and 38 lines respectively)
             if [ "${file}" == "mmu_hardware.cfg" -a "$HAS_SELECTOR" == "no" ]; then
                 sed "/^# SELECTOR SERVO/,+7 d" ${dest} > ${dest}.tmp && mv ${dest}.tmp ${dest}
-                sed "/^# SELECTOR STEPPER/,+35 d" ${dest} > ${dest}.tmp && mv ${dest}.tmp ${dest}
+                sed "/^# SELECTOR STEPPER/,+37 d" ${dest} > ${dest}.tmp && mv ${dest}.tmp ${dest}
 
                 # Expand out the additional filament drive for each gate
                 additional_gear_section=$(sed -n "/^# ADDITIONAL FILAMENT DRIVE/,+10 p" ${dest} | sed "1,3d")
